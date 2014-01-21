@@ -14,9 +14,14 @@ namespace BFCrashLogger
         [STAThread]
         static void Main()
         {
+            var settings = new Settings();
+            var installId = settings.InstallId;
+
+            var logMessage = new LogMessage(installId, Guid.NewGuid());
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            Application.Run(new Form1(logMessage));
         }
     }
 }

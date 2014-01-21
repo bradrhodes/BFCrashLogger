@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Configuration;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
@@ -8,11 +9,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 
 namespace BFCrashLogger
 {
     public partial class Form1 : Form
     {
+        private readonly LogMessage _logMessage;
         private const string ProcessName = "";
         private const string FautltWindowTitle = "";
         private const int TimerInterval = 10000;
@@ -20,8 +23,11 @@ namespace BFCrashLogger
         private Timer _monitortimer;
         private bool _curState;
 
-        public Form1()
+        public Form1(LogMessage logMessage)
         {
+            if (logMessage == null) throw new ArgumentNullException("logMessage");
+            _logMessage = logMessage;
+
             InitializeComponent();
             _monitortimer = new Timer() {Interval = TimerInterval};
             _monitortimer.Tick += CheckProcess;
@@ -29,7 +35,30 @@ namespace BFCrashLogger
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            SetupBindings();
+
+            Log(MessageIds.SessionStart, "", "Session started.");
             SetInitialState();
+        }
+
+        private void SetupBindings()
+        {
+//            var logBindingSource = new BindingSource {DataSource = _logMessage.Log, };
+//            listBox1.DataSource = logBindingSource;
+//            listBox1.DisplayMember = "TextMessage";
+
+//            listBox1.DataSource = _logMessage.Log;
+//            listBox1.DisplayMember = "TextMessage";
+//            listBox1.ValueMember = "TextMessage";
+
+            listBox1.DisplayMember = "TextMessage";
+            listBox1.ValueMember = "TextMessage";
+            listBox1.DataSource = _logMessage.Log;
+            
+//            listBox1.DataBindings.Add("DisplayMember", Log, "TextMessage", true,
+//                                      DataSourceUpdateMode.OnPropertyChanged);
+//            listBox1.DataBindings.Add("ValueMember", _logMessage.Log, "TextMessage", true, DataSourceUpdateMode.OnPropertyChanged);
+
         }
 
         private void CheckProcess(object sender, EventArgs e)
@@ -38,6 +67,7 @@ namespace BFCrashLogger
             var process = procList.FirstOrDefault();
 
             SetState(process);
+            CheckForCrash(process);
         }
 
         public void CheckForCrash(Process process)
@@ -47,9 +77,12 @@ namespace BFCrashLogger
 
             if (process.Responding) return;
             
-            OutputMessage("Process not responding. ");
+            Log(MessageIds.BfStoppedResponding, "", "BF stopped responding. ");
             process.Kill();
-            OutputMessage(process.WaitForExit(20000) ? "Process killed." : "Process not killed.");
+            if (process.WaitForExit(20000))
+                Log(MessageIds.BfKilled, true.ToString(), "Process killed.");
+            else
+                Log(MessageIds.BfKilled, false.ToString(), "Process not killed.");
 
             FindWerFault();
         }
@@ -62,9 +95,11 @@ namespace BFCrashLogger
             if (werFaultProcess == null)
                 return;
 
-            OutputMessage("Killing fault window. ");
             werFaultProcess.Kill();
-            OutputMessage(werFaultProcess.WaitForExit(20000) ? "Fault window killed." : "Fault window not killed.");
+            if (werFaultProcess.WaitForExit(20000))
+                Log(MessageIds.BfFaultWindowKilled, true.ToString(), "Fault window killed.");
+            else
+                Log(MessageIds.BfFaultWindowKilled, false.ToString(), "Fault window not killed.");
         }
 
         private void SetInitialState()
@@ -74,7 +109,10 @@ namespace BFCrashLogger
 
             _curState = (process != null);
 
-            OutputMessage(_curState ? "Game is running." : "Game is not running.");
+            if (_curState)
+                Log(MessageIds.BfStateChange, true.ToString(), "Game is running.");
+            else
+                Log(MessageIds.BfStateChange, false.ToString(), "Game is not running.");
         }
 
         private void SetState(Process process)
@@ -82,18 +120,110 @@ namespace BFCrashLogger
             var tempState = (process != null);
 
             if(tempState != _curState)
-                OutputMessage("Game is running.");
+                Log(MessageIds.BfStateChange, true.ToString(), "Game is running.");
             else
-                OutputMessage("Game is stopped.");
+                Log(MessageIds.BfStateChange, true.ToString(), "Game is stopped.");
 
             _curState = tempState;
         }
 
-        private void OutputMessage(string message)
+        private void Log(int messageId, string messageValue, string textMessage)
         {
-            throw new NotImplementedException();
+            var timeStamp = DateTime.UtcNow;
+            _logMessage.Log.Add(new LoggerData(timeStamp, messageId, messageValue, textMessage));
+        }
+
+        private void reportCrash_Click(object sender, EventArgs e)
+        {
+            using (var unhandledForm = new UnhandledForm())
+            {
+                var result = unhandledForm.ShowDialog();
+                if (result == DialogResult.Cancel)
+                    return;
+
+                Log(MessageIds.BfCrashUnhandled, unhandledForm.ErrorDescription, "Unhandled error reported.");
+            }
+        }
+
+        private void viewData_Click(object sender, EventArgs e)
+        {
+            var serializedData = JsonConvert.SerializeObject(_logMessage, Formatting.Indented);
+            using (var displayForm = new DisplayDataForm(serializedData))
+            {
+                displayForm.ShowDialog();
+            }
+        }
+
+        private void exit_Click(object sender, EventArgs e)
+        {
+            this.Close();
         }
     }
 
-    
+    public class LoggerData
+    {
+        public LoggerData(DateTime timestamp, int messageId, string messageValue = "", string textMessage = "")
+        {
+            TimeStamp = timestamp;
+            MessageId = messageId;
+            MessageValue = messageValue;
+            TextMessage = textMessage;
+        }
+
+        public DateTime TimeStamp { get; private set; }
+        public int MessageId { get; private set; }
+        public string MessageValue { get; private set; }
+        [JsonIgnore]
+        public string TextMessage { get; private set; }
+    }
+
+    public class LogMessage
+    {
+        public LogMessage(Guid installId, Guid sessionId)
+        {
+            Log = new BindingList<LoggerData>();
+            InstallId = installId;
+            SessionId = sessionId;
+
+            OsVersion = Environment.OSVersion.VersionString;
+            OsServicePack = Environment.OSVersion.ServicePack;
+        }
+
+        public Guid InstallId { get; private set; }
+        public Guid SessionId { get; private set; }
+        public BindingList<LoggerData> Log { get; private set; }
+        public string OsVersion { get; private set; }
+        public string OsServicePack { get; private set; }
+    }
+
+    public class Settings : ApplicationSettingsBase
+    {
+        [UserScopedSetting]
+        public Guid InstallId
+        {
+            get
+            {
+                if (this["InstallId"] == null)
+                {
+                    var newGuid = Guid.NewGuid();
+                    this.InstallId = newGuid;
+                    this.Save();
+                    return newGuid;
+                }
+                return (Guid) this["InstallId"];
+            }
+            private set { this["InstallId"] = (Guid) value; }
+        }
+    }
+
+    public static class MessageIds
+    {
+        public const int SessionStart = 01;
+        public const int BfStateChange = 10;
+        public const int BfStoppedResponding = 20;
+        public const int BfKilled = 30;
+        public const int BfFaultWindowKilled = 35;
+        public const int BfCrashUnhandled = 40;
+        public const int SessionEnd = 99;
+    }
 }
