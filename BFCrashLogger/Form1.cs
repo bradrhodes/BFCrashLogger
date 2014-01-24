@@ -43,22 +43,9 @@ namespace BFCrashLogger
 
         private void SetupBindings()
         {
-//            var logBindingSource = new BindingSource {DataSource = _logMessage.Log, };
-//            listBox1.DataSource = logBindingSource;
-//            listBox1.DisplayMember = "TextMessage";
-
-//            listBox1.DataSource = _logMessage.Log;
-//            listBox1.DisplayMember = "TextMessage";
-//            listBox1.ValueMember = "TextMessage";
-
             listBox1.DisplayMember = "TextMessage";
             listBox1.ValueMember = "TextMessage";
             listBox1.DataSource = _logMessage.Log;
-            
-//            listBox1.DataBindings.Add("DisplayMember", Log, "TextMessage", true,
-//                                      DataSourceUpdateMode.OnPropertyChanged);
-//            listBox1.DataBindings.Add("ValueMember", _logMessage.Log, "TextMessage", true, DataSourceUpdateMode.OnPropertyChanged);
-
         }
 
         private void CheckProcess(object sender, EventArgs e)
@@ -75,14 +62,18 @@ namespace BFCrashLogger
             if (process == null)
                 return;
 
-            if (process.Responding) return;
+            if (process.Responding)
+            {
+                FindFaultFirst(process);
+                return;
+            }
             
             Log(MessageIds.BfStoppedResponding, "", "BF stopped responding. ");
             process.Kill();
             if (process.WaitForExit(20000))
-                Log(MessageIds.BfKilled, true.ToString(), "Process killed.");
+                Log(MessageIds.BfKilled, true.ToString(), "BF killed.");
             else
-                Log(MessageIds.BfKilled, false.ToString(), "Process not killed.");
+                Log(MessageIds.BfKilled, false.ToString(), "BF not killed.");
 
             FindWerFault();
         }
@@ -100,6 +91,27 @@ namespace BFCrashLogger
                 Log(MessageIds.BfFaultWindowKilled, true.ToString(), "Fault window killed.");
             else
                 Log(MessageIds.BfFaultWindowKilled, false.ToString(), "Fault window not killed.");
+        }
+
+        public void FindFaultFirst(Process process)
+        {
+            var werFault = Process.GetProcessesByName("WerFault");
+            var werFaultProcess = werFault.FirstOrDefault(x => x.MainWindowTitle == FautltWindowTitle);
+
+            if (werFaultProcess == null)
+                return;
+
+            werFaultProcess.Kill();
+            if (werFaultProcess.WaitForExit(20000))
+                Log(MessageIds.BfFaultWindowKilledFirst , true.ToString(), "Fault window found first and killed.");
+            else
+                Log(MessageIds.BfFaultWindowKilled, false.ToString(), "Fault window found first but not killed.");
+
+            process.Kill();
+            if (process.WaitForExit(20000))
+                Log(MessageIds.BfKilledAfter, true.ToString(), "BF killed after fault window.");
+            else
+                Log(MessageIds.BfKilledAfter, false.ToString(), "BF not killed after fault window.");
         }
 
         private void SetInitialState()
@@ -222,7 +234,9 @@ namespace BFCrashLogger
         public const int BfStateChange = 10;
         public const int BfStoppedResponding = 20;
         public const int BfKilled = 30;
+        public const int BfKilledAfter = 30;
         public const int BfFaultWindowKilled = 35;
+        public const int BfFaultWindowKilledFirst = 36;
         public const int BfCrashUnhandled = 40;
         public const int SessionEnd = 99;
     }
