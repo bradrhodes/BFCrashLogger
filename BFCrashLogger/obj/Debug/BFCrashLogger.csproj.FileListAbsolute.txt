@@ -1,0 +1,17 @@
+C:\Users\Brad\Documents\Dev\PureBattlefield\new\BFCrashLogger\BFCrashLogger\bin\Debug\BFCrashLogger.exe.config
+C:\Users\Brad\Documents\Dev\PureBattlefield\new\BFCrashLogger\BFCrashLogger\bin\Debug\BFCrashLogger.exe
+C:\Users\Brad\Documents\Dev\PureBattlefield\new\BFCrashLogger\BFCrashLogger\bin\Debug\BFCrashLogger.pdb
+C:\Users\Brad\Documents\Dev\PureBattlefield\new\BFCrashLogger\BFCrashLogger\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Brad\Documents\Dev\PureBattlefield\new\BFCrashLogger\BFCrashLogger\bin\Debug\Newtonsoft.Json.xml
+C:\Users\Brad\Documents\Dev\PureBattlefield\new\BFCrashLogger\BFCrashLogger\obj\Debug\BFCrashLogger.csprojResolveAssemblyReference.cache
+C:\Users\Brad\Documents\Dev\PureBattlefield\new\BFCrashLogger\BFCrashLogger\obj\Debug\BFCrashLogger.DisplayDataForm.resources
+C:\Users\Brad\Documents\Dev\PureBattlefield\new\BFCrashLogger\BFCrashLogger\obj\Debug\BFCrashLogger.Form1.resources
+C:\Users\Brad\Documents\Dev\PureBattlefield\new\BFCrashLogger\BFCrashLogger\obj\Debug\BFCrashLogger.Properties.Resources.resources
+C:\Users\Brad\Documents\Dev\PureBattlefield\new\BFCrashLogger\BFCrashLogger\obj\Debug\BFCrashLogger.UnhandledForm.resources
+C:\Users\Brad\Documents\Dev\PureBattlefield\new\BFCrashLogger\BFCrashLogger\obj\Debug\BFCrashLogger.csproj.GenerateResource.Cache
+C:\Users\Brad\Documents\Dev\PureBattlefield\new\BFCrashLogger\BFCrashLogger\obj\Debug\BFCrashLogger.exe
+C:\Users\Brad\Documents\Dev\PureBattlefield\new\BFCrashLogger\BFCrashLogger\obj\Debug\BFCrashLogger.pdb
+C:\Users\Brad\Documents\Dev\PureBattlefield\new\BFCrashLogger\BFCrashLogger\bin\Debug\BFCrashLogger.exe.manifest
+C:\Users\Brad\Documents\Dev\PureBattlefield\new\BFCrashLogger\BFCrashLogger\bin\Debug\BFCrashLogger.application
+C:\Users\Brad\Documents\Dev\PureBattlefield\new\BFCrashLogger\BFCrashLogger\obj\Debug\BFCrashLogger.exe.manifest
+C:\Users\Brad\Documents\Dev\PureBattlefield\new\BFCrashLogger\BFCrashLogger\obj\Debug\BFCrashLogger.application
