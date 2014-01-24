@@ -1,0 +1,1 @@
+{"name":"BF Crash Logger","tagline":"Attempts to log BF crashes and kill the process when it does.","body":"### BF Crash Logger\r\nInstall and run. Should detect crashes. When it does, it should kill the BF process and log that it has done so.\r\n\r\n","google":"","note":"Don't delete this file! It's used internally to help with page regeneration."}
